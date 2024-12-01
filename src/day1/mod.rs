@@ -5,11 +5,11 @@ use itertools::multiunzip;
 use itertools::Itertools;
 
 type Output = i64;
-type Input = Vec<(i64, i64)>;
+type Input = (Vec<i64>, Vec<i64>);
 
 #[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> Result<Input> {
-    input
+    Ok(multiunzip(input
         .lines()
         .map(|line| line.split_once("   "))
         .map(|split| {
@@ -23,38 +23,57 @@ pub fn input_generator(input: &str) -> Result<Input> {
                 bail!("No split found");
             }
         })
-        .collect()
+        .collect::<Result<Vec<(i64, i64)>>>()?
+        ))
 }
 
 #[aoc(day1, part1)]
 pub fn solve_part1(input: &Input) -> Result<Output> {
-    let input = input.clone();
-    let (mut first, mut second): (Vec<_>, Vec<_>) = multiunzip(input);
-    first.sort();
-    second.sort();
-    Ok(first
+    Ok(input.0
         .iter()
-        .zip(second.iter())
+        .sorted()
+        .zip(input.1.iter().sorted())
         .map(|(a, b)| (a - b).abs())
         .sum())
 }
 
 #[aoc(day1, part2)]
 pub fn solve_part2(input: &Input) -> Result<Output> {
-    let (first, second): (Vec<_>, Vec<_>) = multiunzip(input.clone());
-    Ok(first
+    Ok(input.0
         .iter()
-        .map(|num| second.iter().filter(|n| num == *n).count() as i64 * num)
+        .map(|num| input.1.iter().filter(|n| num == *n).count() as i64 * num)
         .sum())
+}
+
+pub fn part1(input: &str) -> impl std::fmt::Display {
+    solve_part1(&input_generator(input).unwrap()).unwrap()
+}
+
+pub fn part2(input: &str) -> impl std::fmt::Display {
+    solve_part2(&input_generator(input).unwrap()).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    fn sample() -> &'static str {
+        "3   4
+4   3
+2   5
+1   3
+3   9
+3   3
+"
+    }
     
+    #[test]
+    fn samples_part1() {
+        assert_eq!(11, solve_part1(&input_generator(sample()).unwrap()).unwrap());
+    }
 
     #[test]
-    fn samples_part1() {}
-
-    #[test]
-    fn samples_part2() {}
+    fn samples_part2() {
+        assert_eq!(11, solve_part1(&input_generator(sample()).unwrap()).unwrap());
+    }
 }
