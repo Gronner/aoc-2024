@@ -1,3 +1,4 @@
+#[allow(unused)]
 macro_rules! regex {
     ($re:literal $(,)?) => {{
         static RE: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
