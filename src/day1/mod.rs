@@ -9,27 +9,29 @@ type Input = (Vec<i64>, Vec<i64>);
 
 #[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> Result<Input> {
-    Ok(multiunzip(input
-        .lines()
-        .map(|line| line.split_once("   "))
-        .map(|split| {
-            if let Some((first, second)) = split {
-                if let (Ok(first), Ok(second)) = (first.parse::<i64>(), second.parse::<i64>()) {
-                    Ok((first, second))
+    Ok(multiunzip(
+        input
+            .lines()
+            .map(|line| line.split_once("   "))
+            .map(|split| {
+                if let Some((first, second)) = split {
+                    if let (Ok(first), Ok(second)) = (first.parse::<i64>(), second.parse::<i64>()) {
+                        Ok((first, second))
+                    } else {
+                        bail!("At least one not parsable to i64: {}, {}", first, second)
+                    }
                 } else {
-                    bail!("At least one not parsable to i64: {}, {}", first, second)
+                    bail!("No split found");
                 }
-            } else {
-                bail!("No split found");
-            }
-        })
-        .collect::<Result<Vec<(i64, i64)>>>()?
-        ))
+            })
+            .collect::<Result<Vec<(i64, i64)>>>()?,
+    ))
 }
 
 #[aoc(day1, part1)]
 pub fn solve_part1(input: &Input) -> Result<Output> {
-    Ok(input.0
+    Ok(input
+        .0
         .iter()
         .sorted()
         .zip(input.1.iter().sorted())
@@ -39,7 +41,8 @@ pub fn solve_part1(input: &Input) -> Result<Output> {
 
 #[aoc(day1, part2)]
 pub fn solve_part2(input: &Input) -> Result<Output> {
-    Ok(input.0
+    Ok(input
+        .0
         .iter()
         .map(|num| input.1.iter().filter(|n| num == *n).count() as i64 * num)
         .sum())
@@ -66,14 +69,20 @@ mod tests {
 3   3
 "
     }
-    
+
     #[test]
     fn samples_part1() {
-        assert_eq!(11, solve_part1(&input_generator(sample()).unwrap()).unwrap());
+        assert_eq!(
+            11,
+            solve_part1(&input_generator(sample()).unwrap()).unwrap()
+        );
     }
 
     #[test]
     fn samples_part2() {
-        assert_eq!(11, solve_part1(&input_generator(sample()).unwrap()).unwrap());
+        assert_eq!(
+            11,
+            solve_part1(&input_generator(sample()).unwrap()).unwrap()
+        );
     }
 }
