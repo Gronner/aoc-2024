@@ -1,8 +1,10 @@
 use anyhow::{bail, Result};
 use aoc_runner_derive::{aoc, aoc_generator};
+use fxhash::FxHashMap;
 use itertools::multiunzip;
 #[allow(unused)]
 use itertools::Itertools;
+use rayon::prelude::*;
 
 type Output = i64;
 type Input = (Vec<i64>, Vec<i64>);
@@ -30,21 +32,30 @@ pub fn input_generator(input: &str) -> Result<Input> {
 
 #[aoc(day1, part1)]
 pub fn solve_part1(input: &Input) -> Result<Output> {
+    let mut left = input.0.clone();
+    let mut right = input.1.clone();
+    left.par_sort_unstable();
+    right.par_sort_unstable();
     Ok(input
         .0
         .iter()
-        .sorted()
-        .zip(input.1.iter().sorted())
+        .zip(input.1.iter())
         .map(|(a, b)| (a - b).abs())
         .sum())
 }
 
 #[aoc(day1, part2)]
 pub fn solve_part2(input: &Input) -> Result<Output> {
+    let num_count = input.1.iter().fold(FxHashMap::default(), |mut map, num| {
+        map.entry(num)
+            .and_modify(|frequency| *frequency += 1)
+            .or_insert(1);
+        map
+    });
     Ok(input
         .0
         .iter()
-        .map(|num| input.1.iter().filter(|n| num == *n).count() as i64 * num)
+        .map(|num| num_count.get(num).unwrap_or(&0))
         .sum())
 }
 
