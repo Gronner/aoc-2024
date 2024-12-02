@@ -11,7 +11,7 @@ pub fn input_generator(input: &str) -> Result<Input> {
     input
         .lines()
         .map(|line| {
-            line.split(" ")
+            line.split_whitespace()
                 .map(|n| {
                     n.parse::<i64>()
                         .with_context(|| format!("Not a number: {}", n))
