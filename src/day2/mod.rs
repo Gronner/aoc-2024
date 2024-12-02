@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::all;
 #[allow(unused)]
 use itertools::Itertools;
 
@@ -23,25 +22,27 @@ pub fn input_generator(input: &str) -> Result<Input> {
 }
 
 pub fn is_safe(report: &[i64]) -> bool {
+    if !report.is_sorted_by(|a, b| a > b) && !report.is_sorted_by(|a, b| b > a) {
+        return false;
+    }
     let safe_pairs = report
         .windows(2)
         .map(|pair| pair[0] - pair[1])
-        .filter(|delta| delta.abs() != 0 && delta.abs() <= 3)
+        .filter(|delta| delta.abs() <= 3)
         .collect::<Vec<i64>>();
 
-    (all(&safe_pairs, |level| *level < 0) || all(&safe_pairs, |level| *level > 0))
-        && safe_pairs.len() == report.len() - 1
+    safe_pairs.len() == report.len() - 1
 }
 
 #[aoc(day2, part1)]
 pub fn solve_part1(input: &Input) -> Result<Output> {
-    Ok(input
-        .iter()
-        .filter(|report| is_safe(*report))
-        .count())
+    Ok(input.iter().filter(|report| is_safe(*report)).count())
 }
 
 pub fn is_safe_dampened(report: &[i64]) -> bool {
+    if is_safe(report) {
+        return true;
+    }
     for i in 0..report.len() {
         let mut report = report.to_vec();
         report.remove(i);
