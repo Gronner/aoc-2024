@@ -8,7 +8,7 @@ type Input = Vec<Vec<i64>>;
 
 #[aoc_generator(day2)]
 pub fn input_generator(input: &str) -> Result<Input> {
-    Ok(input
+    input
         .lines()
         .map(|line| {
             line.split(" ")
@@ -18,46 +18,55 @@ pub fn input_generator(input: &str) -> Result<Input> {
                 })
                 .collect()
         })
-        .collect::<Result<Vec<Vec<i64>>>>()?)
+        .collect::<Result<Vec<Vec<i64>>>>()
 }
 
 pub fn is_safe(report: &[i64]) -> bool {
-    if !report.is_sorted_by(|a, b| a > b) && !report.is_sorted_by(|a, b| b > a) {
-        return false;
-    }
     let safe_pairs = report
         .windows(2)
         .map(|pair| pair[0] - pair[1])
         .filter(|delta| delta.abs() <= 3)
-        .collect::<Vec<i64>>();
+        .map(|delta| delta.signum())
+        .sum::<i64>()
+        .abs();
 
-    safe_pairs.len() == report.len() - 1
+    safe_pairs == report.len() as i64 - 1
 }
 
 #[aoc(day2, part1)]
 pub fn solve_part1(input: &Input) -> Result<Output> {
-    Ok(input.iter().filter(|report| is_safe(*report)).count())
+    Ok(input.iter().filter(|report| is_safe(report)).count())
 }
 
 pub fn is_safe_dampened(report: &[i64]) -> bool {
-    if is_safe(report) {
-        return true;
-    }
-    for i in 0..report.len() {
-        let mut report = report.to_vec();
-        report.remove(i);
-        if is_safe(&report) {
+    for idx in 0..report.len() {
+        if is_safe2(report, idx) {
             return true;
         }
     }
     false
 }
 
+pub fn is_safe2(report: &[i64], idx: usize) -> bool {
+    let safe_pairs = report
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| *i != idx)
+        .tuple_windows()
+        .map(|((_, a), (_, b))| a - b)
+        .filter(|delta| delta.abs() <= 3)
+        .map(|delta| delta.signum())
+        .sum::<i64>()
+        .abs();
+
+    safe_pairs == report.len() as i64 - 2
+}
+
 #[aoc(day2, part2)]
 pub fn solve_part2(input: &Input) -> Result<Output> {
     Ok(input
         .iter()
-        .filter(|report| is_safe_dampened(*report))
+        .filter(|report| is_safe_dampened(report))
         .count())
 }
 
