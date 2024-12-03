@@ -17,7 +17,6 @@ pub fn input_generator(input: &str) -> Input {
                 line.split_whitespace()
                     .map(|n| n.parse::<i64>().unwrap())
                     .tuple_windows()
-                    .map(|(a, b)| (a, b))
             })
             .collect::<Vec<(i64, i64)>>(),
     )
