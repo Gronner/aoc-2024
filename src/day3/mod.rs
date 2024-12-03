@@ -41,11 +41,9 @@ pub fn solve_part2(input: &Input) -> Output {
             (ToDo::Do(sum), "mul") => {
                 ToDo::Do(cap[1].parse::<i64>().unwrap() * cap[2].parse::<i64>().unwrap() + sum)
             }
-            (ToDo::Do(sum), "do(") => ToDo::Do(sum),
             (ToDo::Do(sum), "don") => ToDo::Dont(sum),
-            (ToDo::Do(sum), _) => ToDo::Do(sum),
             (ToDo::Dont(sum), "do(") => ToDo::Do(sum),
-            (ToDo::Dont(sum), _) => ToDo::Dont(sum),
+            (state, _) => state,
         })
         .inner()
 }
@@ -61,10 +59,6 @@ pub fn part2(input: &str) -> impl std::fmt::Display {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn sample() -> &'static str {
-        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
-    }
 
     #[test]
     fn samples_part1() {
