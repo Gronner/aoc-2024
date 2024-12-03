@@ -13,13 +13,13 @@ pub fn input_generator(input: &str) -> Input {
     multiunzip(
         input
             .lines()
-            .flat_map(|line| 
-                {line.split_whitespace()
-                .map(|n| n.parse::<i64>().unwrap())
-                .tuple_windows()
-                .map(|(a, b)| (a, b))
-                })
-            .collect::<Vec<(i64, i64)>>()
+            .flat_map(|line| {
+                line.split_whitespace()
+                    .map(|n| n.parse::<i64>().unwrap())
+                    .tuple_windows()
+                    .map(|(a, b)| (a, b))
+            })
+            .collect::<Vec<(i64, i64)>>(),
     )
 }
 
@@ -29,8 +29,7 @@ pub fn solve_part1(input: &Input) -> Output {
     let mut right = input.1.clone();
     left.par_sort_unstable();
     right.par_sort_unstable();
-    left
-        .iter()
+    left.iter()
         .zip(right.iter())
         .map(|(a, b)| (a - b).abs())
         .sum()
@@ -75,17 +74,11 @@ mod tests {
 
     #[test]
     fn samples_part1() {
-        assert_eq!(
-            11,
-            solve_part1(&input_generator(sample()))
-        );
+        assert_eq!(11, solve_part1(&input_generator(sample())));
     }
 
     #[test]
     fn samples_part2() {
-        assert_eq!(
-            31,
-            solve_part2(&input_generator(sample()))
-        );
+        assert_eq!(31, solve_part2(&input_generator(sample())));
     }
 }
