@@ -7,41 +7,38 @@ use aoc_runner_derive::{aoc, aoc_generator};
 #[allow(unused)]
 use itertools::Itertools;
 
-type Output = i64;
+type Output = u64;
 type Input = Vec<Equation>;
 
 #[derive(Debug)]
 pub struct Equation {
-    result: i64,
-    operands: Vec<i64>,
+    result: u64,
+    operands: Vec<u64>,
 }
 
-fn add(lhs: i64, rhs: i64) -> i64 {
+fn add(lhs: u64, rhs: u64) -> u64 {
     lhs + rhs
 }
 
-fn mul(lhs: i64, rhs: i64) -> i64 {
+fn mul(lhs: u64, rhs: u64) -> u64 {
     lhs * rhs
 }
 
-fn concat(lhs: i64, rhs: i64) -> i64 {
-    (lhs.to_string() + &rhs.to_string())
-        .parse()
-        .expect("Combination of two numbers is not a number")
+fn concat(lhs: u64, rhs: u64) -> u64 {
+    lhs * (10_u64.pow(lhs.ilog10())) + rhs
 }
 
 impl Equation {
-    fn is_valid(&self, operations: &[fn(i64, i64) -> i64]) -> bool {
+    fn is_valid(&self, operations: &[fn(u64, u64) -> u64]) -> bool {
         let missing = self.operands.len() - 1;
         // This creates all possible sequences with repetition
         repeat_n(operations, missing)
             .multi_cartesian_product()
             .any(|ops| {
-                let result = ops
-                    .iter()
+                ops.iter()
                     .zip(self.operands[1..].iter())
-                    .fold(self.operands[0], |acc, (op, operand)| op(acc, *operand));
-                result == self.result
+                    .fold(self.operands[0], |acc, (op, operand)| op(acc, *operand))
+                    == self.result
             })
     }
 }
@@ -55,8 +52,8 @@ impl FromStr for Equation {
             result: result.parse().context("No valid integer")?,
             operands: operands
                 .split_whitespace()
-                .map(|n| n.parse::<i64>().context("No valid integer"))
-                .collect::<Result<Vec<i64>>>()?,
+                .map(|n| n.parse::<u64>().context("No valid integer"))
+                .collect::<Result<Vec<u64>>>()?,
         })
     }
 }
@@ -71,7 +68,7 @@ pub fn input_generator(input: &str) -> Result<Input> {
 
 #[aoc(day7, part1)]
 pub fn solve_part1(input: &Input) -> Output {
-    const OPERATIONS: [fn(i64, i64) -> i64; 2] = [add, mul];
+    const OPERATIONS: [fn(u64, u64) -> u64; 2] = [add, mul];
     input
         .par_iter()
         .filter(|eq| eq.is_valid(&OPERATIONS))
@@ -81,7 +78,7 @@ pub fn solve_part1(input: &Input) -> Output {
 
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &Input) -> Output {
-    const OPERATIONS: [fn(i64, i64) -> i64; 3] = [add, mul, concat];
+    const OPERATIONS: [fn(u64, u64) -> u64; 3] = [add, mul, concat];
     input
         .par_iter()
         .filter(|eq| eq.is_valid(&OPERATIONS))
