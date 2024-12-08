@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use crate::utils::point::Point;
 use aoc_runner_derive::{aoc, aoc_generator};
 #[allow(unused)]
 use itertools::Itertools;
@@ -41,38 +42,6 @@ impl Dir {
             Dir::Right => Dir::Down,
             Dir::Down => Dir::Left,
             Dir::Left => Dir::Up,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Point {
-    x: isize,
-    y: isize,
-}
-
-impl std::ops::Add for Point {
-    type Output = Point;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
-impl From<Point> for (isize, isize) {
-    fn from(value: Point) -> Self {
-        (value.x, value.y)
-    }
-}
-
-impl From<(isize, isize)> for Point {
-    fn from(value: (isize, isize)) -> Self {
-        Self {
-            x: value.0,
-            y: value.1,
         }
     }
 }

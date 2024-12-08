@@ -1,3 +1,5 @@
+pub mod point;
+
 #[allow(unused)]
 macro_rules! regex {
     ($re:literal $(,)?) => {{
