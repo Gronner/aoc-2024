@@ -28,6 +28,28 @@ impl std::ops::Add for Point {
     }
 }
 
+impl std::ops::Add<&Self> for &Point {
+    type Output = Point;
+
+    fn add(self, rhs: &Self) -> Self::Output {
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl std::ops::Sub<&Point> for &Point {
+    type Output = Point;
+
+    fn sub(self, rhs: &Point) -> Self::Output {
+        Point {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
 impl std::ops::Sub for Point {
     type Output = Point;
 
@@ -35,6 +57,17 @@ impl std::ops::Sub for Point {
         Self {
             x: self.x - rhs.x,
             y: self.y - rhs.y,
+        }
+    }
+}
+
+impl std::ops::Mul<isize> for &Point {
+    type Output = Point;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        Point {
+            x: rhs * self.x,
+            y: rhs * self.y,
         }
     }
 }
