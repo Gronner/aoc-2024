@@ -91,6 +91,6 @@ mod tests {
 
     #[test]
     fn samples_part2() {
-        assert_eq!(31, solve_part2(&input_generator(sample())));
+        assert_eq!(65601038650482, solve_part2(&input_generator(sample())));
     }
 }
