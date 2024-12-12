@@ -3,94 +3,140 @@ use std::collections::{HashMap, HashSet};
 use aoc_runner_derive::{aoc, aoc_generator};
 #[allow(unused)]
 use itertools::Itertools;
-use pathfinding::matrix::Matrix;
+
+use crate::utils::point::Point;
 
 type Num = usize;
 type Output = Num;
-type Input = Matrix<char>;
-type Pos = (usize, usize);
+type Pos = Point;
+type Input = Vec<HashSet<Point>>;
 
 #[aoc_generator(day12)]
 pub fn input_generator(input: &str) -> Input {
-    Matrix::from_rows(input.lines().map(|line| line.chars().collect::<Vec<_>>())).unwrap()
-}
-
-fn perimeter(region: &HashSet<Pos>, garden: &Input) -> Num {
-    region
-        .iter()
-        .map(|pos| {
-            let neighs = garden
-                .neighbours(*pos, false)
-                .collect::<Vec<_>>();
-            neighs.iter()
-                .filter(|neigh| !region.contains(neigh))
-                .count() + 4 - neighs.len()
+    let garden: HashMap<Point, char> = input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(x, c)| (Point::from((x as isize, y as isize)), c))
         })
-        .sum()
+        .collect();
+    let mut regions: HashMap<Point, HashSet<Point>> = garden
+        .keys()
+        .map(|pos| (*pos, HashSet::from_iter(vec![*pos])))
+        .collect::<HashMap<_, _>>();
+
+    let directions = [
+        Point::from((1, 0)),
+        Point::from((0, 1)),
+        Point::from((-1, 0)),
+        Point::from((0, -1)),
+    ];
+    for plant in garden.keys() {
+        for dir in directions {
+            if garden.contains_key(&(plant + &&dir)) && garden[plant] == garden[&(plant + &&dir)] {
+                *regions.get_mut(plant).unwrap() = regions[plant]
+                    .union(&regions[&(plant + &&dir)])
+                    .cloned()
+                    .collect();
+                for other_plants in &regions[plant].clone() {
+                    *regions.get_mut(other_plants).unwrap() = regions[plant].clone();
+                }
+            }
+        }
+    }
+    regions.values().fold(Vec::new(), |mut urs, region| {
+        if !urs.contains(region) {
+            urs.push(region.clone());
+            urs
+        } else {
+            urs
+        }
+    })
 }
 
 fn area(region: &HashSet<Pos>) -> Num {
     region.len()
 }
 
+fn perimeter(region: &HashSet<Point>) -> Num {
+    let directions = [
+        Point::from((1, 0)),
+        Point::from((0, 1)),
+        Point::from((-1, 0)),
+        Point::from((0, -1)),
+    ];
+    region
+        .iter()
+        .cartesian_product(directions.iter())
+        .map(|(plant, dir)| plant + &dir)
+        .filter(|neighbour| !region.contains(neighbour))
+        .count()
+}
+
 #[aoc(day12, part1)]
 pub fn solve_part1(input: &Input) -> Output {
-    let mut regions = input
+    input
         .iter()
-        .enumerate()
-        .flat_map(|(y, row)| {
-            row.iter()
-                .enumerate()
-                .map(move |(x, _)| ((x, y), HashSet::from_iter(vec![(x, y)])))
-        })
-        .collect::<HashMap<Pos, HashSet<Pos>>>();
-
-    for plot in input.keys() {
-        input
-            .neighbours(plot, false)
-            .filter(|neigh| input.get(*neigh).unwrap() == input.get(plot).unwrap())
-            .for_each(|neigh| {
-                *regions.get_mut(&plot).unwrap() =
-                    regions[&plot].union(&regions[&neigh]).cloned().collect();
-                for other_plot in &regions[&plot].clone() {
-                    *regions.get_mut(other_plot).unwrap() = regions[&plot].clone();
-                }
-            });
-    }
-    let mut unique_regions = Vec::new();
-    // Hashing collections in Rust are not hashable themselves, unique and other things therefor do
-    // not work
-    for region in regions.values() {
-        if !unique_regions.contains(&region) {
-            unique_regions.push(region);
-        }
-    }
-
-    let dim = 10;
-
-    for r in 0..dim {
-        for c in 0 .. dim {
-            print!("{:x}", unique_regions.iter().position(|reg| reg.contains(&(r, c))).unwrap());
-        }
-        println!("");
-    }
-
-    unique_regions
-        .iter()
-        .inspect(|r| print!("{r:?}: "))
         .map(|region| {
             let area = area(region);
-            let perimeter = perimeter(region, input);
-            println!("{area} - {perimeter}");
+            let perimeter = perimeter(region);
             area * perimeter
         })
-        .inspect(|r| println!("{r:?}"))
         .sum()
+}
+
+/// The amount of sides is equal to the amount of corners.
+/// By "walking" the perimeter and checking wether a point is a corner *per direction* sides can be
+/// counted. A corner is any point `a` with direction `a -> b` for which:
+///
+/// ```text
+/// a b
+/// c d
+/// ```
+///
+/// * `b` and `c` are not part of `a`'s region:
+///
+/// ```text
+/// A B
+/// B ?
+/// ```
+///
+/// * `b` is not part of of `a`'s region, but `c` and `d` are:
+///
+/// ```text
+/// A B
+/// A A
+/// ```
+fn corners(region: &HashSet<Point>) -> Num {
+    let directions = [
+        Point::from((1, 0)),
+        Point::from((0, 1)),
+        Point::from((-1, 0)),
+        Point::from((0, -1)),
+    ];
+    region
+        .iter()
+        .cartesian_product(directions.iter())
+        .filter(|(pos, dir)| {
+            !region.contains(&(*dir + pos))
+                && (!region.contains(&(**pos + dir.turn_clockwise()))
+                    || (region.contains(&(**pos + **dir + dir.turn_clockwise()))))
+        })
+        .count()
 }
 
 #[aoc(day12, part2)]
 pub fn solve_part2(input: &Input) -> Output {
-    0
+    input
+        .iter()
+        .map(|region| {
+            let area = area(region);
+            let sides = corners(region);
+            area * sides
+        })
+        .sum()
 }
 
 pub fn part1(input: &str) -> impl std::fmt::Display {
@@ -125,17 +171,6 @@ MMMISSJEEE"
 
     #[test]
     fn samples_part2() {
-        /*let sample = "RRRRRRRRRR
-RRRRRRRRRR
-RRRRRRRRRR
-RRRRRRRRRR
-RRRRRRRRRR
-RRIRRRRRRR
-RRIIIRRRRR
-RIIIIIRRRR
-RIIIRIRRRR
-RRRIRRRRRR
-";*/
         assert_eq!(1206, solve_part2(&input_generator(sample())));
     }
 }

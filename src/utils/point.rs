@@ -15,6 +15,20 @@ impl Point {
             y: (self.y - rhs.y).abs(),
         }
     }
+
+    pub fn turn_counterclockwise(&self) -> Self {
+        Self {
+            x: -self.y,
+            y: self.x,
+        }
+    }
+
+    pub fn turn_clockwise(&self) -> Self {
+        Self {
+            x: self.y,
+            y: -self.x,
+        }
+    }
 }
 
 impl std::ops::Add for Point {
