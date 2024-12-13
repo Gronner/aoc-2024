@@ -20,8 +20,16 @@ pub struct Machine {
 
 impl Machine {
     /// Solving
-    /// 1: px = a * ax + b * bx
-    /// 2: py = a * ay + b * by
+    /// $$p_x = a * a_x + b * b_x$$
+    /// $$p_y = a * a_y + b * b_y$$
+    ///
+    /// through
+    ///
+    /// $$b = \frac{a_y * p_x - a_x * p_y}{a_y * b_x - a_x * b_y} $$
+    /// $$a = \frac{p_x - b * b_x}{a_x} $$
+    ///
+    /// requiring
+    /// $$ a_x * b_y \neq{} a_y * b_x $$ and $$a_x \neq{} 0 $$
     pub fn solve(&self) -> Option<(isize, isize)> {
         if self.a_move['x'] == 0 {
             return None;
@@ -43,10 +51,12 @@ impl Machine {
         }
     }
 
-    pub fn modify_price(mut self, constant: Num) -> Self {
-        self.price['x'] += constant;
-        self.price['y'] += constant;
-        self
+    pub fn modify_price(&self, constant: Num) -> Self {
+        Self {
+            a_move: self.a_move,
+            b_move: self.b_move,
+            price: Point::from((self.price['x'] + constant, self.price['y'] + constant)),
+        }
     }
 }
 
@@ -124,7 +134,7 @@ pub fn solve_part1(input: &Input) -> Output {
 
 #[aoc(day13, part2)]
 pub fn solve_part2(input: &Input) -> Output {
-    input.clone().iter()
+    input.iter()
         .map(|machine| machine.modify_price(10000000000000))
         .filter_map(|machine| machine.solve())
         .map(|(a, b)| a * 3 + b * 1)
@@ -168,6 +178,6 @@ Prize: X=18641, Y=10279"
 
     #[test]
     fn samples_part2() {
-        assert_eq!(31, solve_part2(&input_generator(sample()).unwrap()));
+        assert_eq!(875318608908, solve_part2(&input_generator(sample()).unwrap()));
     }
 }
