@@ -1,7 +1,31 @@
+use std::ops::{Index, IndexMut};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Point {
     x: isize,
     y: isize,
+}
+
+impl Index<char> for Point {
+    type Output = isize;
+
+    fn index(&self, index: char) -> &Self::Output {
+        match index {
+            'x' => &self.x,
+            'y' => &self.y,
+            i => panic!("Index {i} not in Point"),
+        }
+    }
+}
+
+impl IndexMut<char> for Point {
+    fn index_mut(&mut self, index: char) -> &mut Self::Output {
+        match index {
+            'x' => &mut self.x,
+            'y' => &mut self.y,
+            i => panic!("Index {i} not in Point"),
+        }
+    }
 }
 
 impl Point {
