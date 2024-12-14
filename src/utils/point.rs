@@ -53,6 +53,13 @@ impl Point {
             y: -self.x,
         }
     }
+
+    pub fn wrapping_add(self, rhs: Self, limits: Self) -> Self {
+        Self {
+            x: (self.x + rhs.x).rem_euclid(limits.x),
+            y: (self.y + rhs.y).rem_euclid(limits.y),
+        }
+    }
 }
 
 impl std::ops::Add for Point {
@@ -117,6 +124,17 @@ impl std::ops::Mul<isize> for Point {
         Self {
             x: rhs * self.x,
             y: rhs * self.y,
+        }
+    }
+}
+
+impl std::ops::Div<isize> for Point {
+    type Output = Self;
+
+    fn div(self, rhs: isize) -> Self::Output {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
         }
     }
 }

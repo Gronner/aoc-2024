@@ -117,10 +117,10 @@ impl FromStr for Machine {
 
 #[aoc_generator(day13)]
 pub fn input_generator(input: &str) -> Result<Input> {
-    Ok(input
+    input
         .split("\n\n")
         .map(Machine::from_str)
-        .collect::<Result<Vec<Machine>>>()?)
+        .collect::<Result<Vec<Machine>>>()
 }
 
 #[aoc(day13, part1)]
@@ -128,16 +128,17 @@ pub fn solve_part1(input: &Input) -> Output {
     input
         .iter()
         .filter_map(|machine| machine.solve())
-        .map(|(a, b)| a * 3 + b * 1)
+        .map(|(a, b)| a * 3 + b)
         .sum()
 }
 
 #[aoc(day13, part2)]
 pub fn solve_part2(input: &Input) -> Output {
-    input.iter()
+    input
+        .iter()
         .map(|machine| machine.modify_price(10000000000000))
         .filter_map(|machine| machine.solve())
-        .map(|(a, b)| a * 3 + b * 1)
+        .map(|(a, b)| a * 3 + b)
         .sum()
 }
 
@@ -178,6 +179,9 @@ Prize: X=18641, Y=10279"
 
     #[test]
     fn samples_part2() {
-        assert_eq!(875318608908, solve_part2(&input_generator(sample()).unwrap()));
+        assert_eq!(
+            875318608908,
+            solve_part2(&input_generator(sample()).unwrap())
+        );
     }
 }
