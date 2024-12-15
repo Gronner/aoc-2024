@@ -1,9 +1,15 @@
-use std::ops::{Index, IndexMut};
+use std::{fmt::Display, ops::{Index, IndexMut}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Point {
     x: isize,
     y: isize,
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }
 
 impl Index<char> for Point {
