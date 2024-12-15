@@ -63,7 +63,6 @@ pub fn solve_part2(input: &Input) -> Output {
                 .map(move |(x, _)| (y, x))
         })
         .filter(|pos| is_x_mas(*pos, input))
-        .inspect(|pos| println!("{:?}", pos))
         .count()
 }
 
