@@ -21,12 +21,16 @@ pub enum Position {
 
 impl Display for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            Position::Empty => '.',
-            Position::Wall => '#',
-            Position::Cargo => 'O',
-            Position::Robot => '@',
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Position::Empty => '.',
+                Position::Wall => '#',
+                Position::Cargo => 'O',
+                Position::Robot => '@',
+            }
+        )
     }
 }
 
@@ -41,11 +45,11 @@ pub enum Direction {
 impl From<char> for Direction {
     fn from(value: char) -> Self {
         match value {
-           '^' => Self::Up,
-           '>' => Self::Right,
-           'v' => Self::Down,
-           '<' => Self::Left,
-           d => panic!("Unkown direction: {}", d),
+            '^' => Self::Up,
+            '>' => Self::Right,
+            'v' => Self::Down,
+            '<' => Self::Left,
+            d => panic!("Unkown direction: {}", d),
         }
     }
 }
@@ -73,15 +77,24 @@ impl From<char> for Position {
     }
 }
 
-#[aoc_generator(day15)]
+#[aoc_generator(day15, part1)]
 pub fn input_generator(input: &str) -> Input {
     let (map, commands) = input.split_once("\n\n").unwrap();
-    let map = map.lines()
+    let map = map
+        .lines()
         .enumerate()
-        .flat_map(|(y, row)| row.chars().enumerate().map(move |(x, c)| (Point::from((x as isize, y as isize)), Position::from(c))))
+        .flat_map(|(y, row)| {
+            row.chars()
+                .enumerate()
+                .map(move |(x, c)| (Point::from((x as isize, y as isize)), Position::from(c)))
+        })
         .collect::<HashMap<Point, Position>>();
 
-    let commands = commands.chars().filter(|c| *c != '\n').map(Direction::from).collect::<Vec<Direction>>();
+    let commands = commands
+        .chars()
+        .filter(|c| *c != '\n')
+        .map(Direction::from)
+        .collect::<Vec<Direction>>();
 
     (map, commands)
 }
@@ -106,7 +119,10 @@ pub fn compute_gps(pos: &Point) -> Output {
     pos['y'] * 100 + pos['x']
 }
 
-pub fn print_map(map: &Map) {
+pub fn print_map<T>(map: &HashMap<Point, T>)
+where
+    T: Display,
+{
     let x_max = map.keys().map(|pos| pos['x']).max().unwrap();
     let y_max = map.keys().map(|pos| pos['y']).max().unwrap();
 
@@ -123,17 +139,18 @@ pub fn solve_part1(input: &Input) -> Output {
     let (map, commands) = input;
     let mut map = map.clone();
 
-    let mut pos = *map.iter()
+    let mut pos = *map
+        .iter()
         .find(|(_, occ)| **occ == Position::Robot)
-        .unwrap().0;
-
+        .unwrap()
+        .0;
 
     for command in commands {
         let tmp = map.clone();
         if let Some(new_pos) = shift(pos, command, &mut map) {
-            pos = new_pos;
             *map.get_mut(&new_pos).unwrap() = Position::Robot;
             *map.get_mut(&pos).unwrap() = Position::Empty;
+            pos = new_pos;
         } else {
             map = tmp;
         }
@@ -145,9 +162,84 @@ pub fn solve_part1(input: &Input) -> Output {
         .sum()
 }
 
+type Map2 = HashMap<Point, char>;
+type Input2 = (Map2, Commands);
+
+#[aoc_generator(day15, part2)]
+pub fn input_generator2(input: &str) -> Input2 {
+    let (map, commands) = input.split_once("\n\n").unwrap();
+    let map = map
+        .replace("#", "##")
+        .replace("O", "[]")
+        .replace(".", "..")
+        .replace("@", "@.");
+    let map = map
+        .lines()
+        .enumerate()
+        .flat_map(|(y, row)| {
+            row.chars()
+                .enumerate()
+                .map(move |(x, c)| (Point::from((x as isize, y as isize)), c))
+        })
+        .collect::<HashMap<Point, char>>();
+
+    let commands = commands
+        .chars()
+        .filter(|c| *c != '\n')
+        .map(Direction::from)
+        .collect::<Vec<Direction>>();
+
+    (map, commands)
+}
+
+pub fn shift2(pos: Point, dir: &Direction, map: &mut Map2) -> Option<Point> {
+    let new_pos = pos + Point::from(dir);
+
+    if map[&new_pos] == '#' {
+        return None;
+    }
+
+    if map[&new_pos] == '[' {
+        if shift2(new_pos + Point::from(&Direction::Right), dir, map).is_none() {
+            return None;
+        }
+        if shift2(new_pos, dir, map).is_none() {
+            return None;
+        }
+    }
+    if map[&new_pos] == ']' {
+        if shift2(new_pos + Point::from(&Direction::Left), dir, map).is_none() {
+            return None;
+        }
+        if shift2(new_pos, dir, map).is_none() {
+            return None;
+        }
+    }
+
+    (*map.get_mut(&new_pos).unwrap(), *map.get_mut(&pos).unwrap()) = (map[&pos], map[&new_pos]);
+    Some(new_pos)
+}
+
 #[aoc(day15, part2)]
-pub fn solve_part2(input: &Input) -> Output {
-    0
+pub fn solve_part2(input: &Input2) -> Output {
+    let (map, commands) = input;
+    let mut map = map.clone();
+
+    let mut pos = *map.iter().find(|(_, occ)| **occ == '@').unwrap().0;
+
+    for command in commands {
+        let tmp = map.clone();
+        if let Some(new_pos) = shift2(pos, command, &mut map) {
+            pos = new_pos;
+        } else {
+            map = tmp;
+        }
+    }
+
+    map.iter()
+        .filter(|(_, occ)| **occ == '[')
+        .map(|(pos, _)| compute_gps(pos))
+        .sum()
 }
 
 pub fn part1(input: &str) -> impl std::fmt::Display {
@@ -155,7 +247,7 @@ pub fn part1(input: &str) -> impl std::fmt::Display {
 }
 
 pub fn part2(input: &str) -> impl std::fmt::Display {
-    solve_part2(&input_generator(input))
+    solve_part2(&input_generator2(input))
 }
 
 #[cfg(test)]
@@ -193,6 +285,6 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"
 
     #[test]
     fn samples_part2() {
-        assert_eq!(31, solve_part2(&input_generator(sample())));
+        assert_eq!(9021, solve_part2(&input_generator2(sample())));
     }
 }
