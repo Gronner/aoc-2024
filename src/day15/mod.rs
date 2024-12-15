@@ -200,20 +200,12 @@ pub fn shift2(pos: Point, dir: &Direction, map: &mut Map2) -> Option<Point> {
     }
 
     if map[&new_pos] == '[' {
-        if shift2(new_pos + Point::from(&Direction::Right), dir, map).is_none() {
-            return None;
-        }
-        if shift2(new_pos, dir, map).is_none() {
-            return None;
-        }
+        shift2(new_pos + Point::from(&Direction::Right), dir, map)?;
+        shift2(new_pos, dir, map)?;
     }
     if map[&new_pos] == ']' {
-        if shift2(new_pos + Point::from(&Direction::Left), dir, map).is_none() {
-            return None;
-        }
-        if shift2(new_pos, dir, map).is_none() {
-            return None;
-        }
+        shift2(new_pos + Point::from(&Direction::Left), dir, map)?;
+        shift2(new_pos, dir, map)?;
     }
 
     (*map.get_mut(&new_pos).unwrap(), *map.get_mut(&pos).unwrap()) = (map[&pos], map[&new_pos]);
