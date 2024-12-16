@@ -4,6 +4,7 @@ use itertools::Itertools;
 use pathfinding::{directed::dijkstra, grid::Grid, prelude::astar_bag};
 
 type Output = usize;
+type Cost = usize;
 type Pos = (isize, isize);
 type Input = (Grid, Pos, Pos);
 
@@ -66,13 +67,26 @@ fn turns(curr_dir: Pos, new_dir: Pos) -> usize {
     2
 }
 
-fn cost(curr_dir: Pos, new_dir: Pos) -> usize {
+fn cost(curr_dir: Pos, new_dir: Pos) -> Cost {
     match turns(curr_dir, new_dir) {
         0 => 0,
         1 => 1000,
-        2 => 2000,
+        2 => 2000, // Should never be taken as it would mean steping back, but generalizes the
+          // problem
         t => panic!("Unexpected number of turns: {t}"),
     }
+}
+
+fn neighbours(pos: Pos, dir: Pos, grid: &Grid) -> Vec<((Pos, Pos), Cost)> {
+    grid
+        .neighbours((pos.0 as usize, pos.1 as usize))
+        .iter()
+        .map(|neigh| {
+            let next_dir = (neigh.0 as isize - pos.0, neigh.1 as isize - pos.1);
+            let cost = cost(dir, next_dir) + 1;
+            (((neigh.0 as isize, neigh.1 as isize), next_dir), cost)
+        })
+        .collect::<Vec<_>>()
 }
 
 #[aoc(day16, part1)]
@@ -81,18 +95,7 @@ pub fn solve_part1(input: &Input) -> Output {
 
     let path = dijkstra::dijkstra(
         &(*start, (1_isize, 0_isize)),
-        |(pos, dir)| {
-            let neighs = grid
-                .neighbours((pos.0 as usize, pos.1 as usize))
-                .iter()
-                .map(|neigh| {
-                    let next_dir = (neigh.0 as isize - pos.0, neigh.1 as isize - pos.1);
-                    let cost = cost(*dir, next_dir) + 1;
-                    (((neigh.0 as isize, neigh.1 as isize), next_dir), cost)
-                })
-                .collect::<Vec<_>>();
-            neighs
-        },
+        |(pos, dir)| neighbours(*pos, *dir, grid),
         |(pos, _)| *pos == *end,
     )
     .unwrap();
@@ -103,32 +106,18 @@ pub fn solve_part1(input: &Input) -> Output {
 pub fn solve_part2(input: &Input) -> Output {
     let (grid, start, end) = input;
 
-    let path = astar_bag(
+    astar_bag(
         &(*start, (1_isize, 0_isize)),
-        |(pos, dir)| {
-            let neighs = grid
-                .neighbours((pos.0 as usize, pos.1 as usize))
-                .iter()
-                .map(|neigh| {
-                    let next_dir = (neigh.0 as isize - pos.0, neigh.1 as isize - pos.1);
-                    let cost = cost(*dir, next_dir) + 1;
-                    (((neigh.0 as isize, neigh.1 as isize), next_dir), cost)
-                })
-                .collect::<Vec<_>>();
-            neighs
-        },
+        |(pos, dir)| neighbours(*pos, *dir, grid),
         |_| 1, // Does not really matter, just improves performance and must be lower than actual
                // cost
         |(pos, _)| *pos == *end,
     )
-    .unwrap();
-    let best = path
-        .0
+    .unwrap().0
         .flatten()
-        .map(|(pos, _)| (pos.0 as usize, pos.1 as usize))
+        .map(|(pos, _)| (pos.0, pos.1))
         .unique()
-        .collect::<Vec<_>>();
-    best.len()
+        .count()
 }
 
 pub fn part1(input: &str) -> impl std::fmt::Display {
