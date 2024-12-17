@@ -72,14 +72,13 @@ fn cost(curr_dir: Pos, new_dir: Pos) -> Cost {
         0 => 0,
         1 => 1000,
         2 => 2000, // Should never be taken as it would mean steping back, but generalizes the
-          // problem
+        // problem
         t => panic!("Unexpected number of turns: {t}"),
     }
 }
 
 fn neighbours(pos: Pos, dir: Pos, grid: &Grid) -> Vec<((Pos, Pos), Cost)> {
-    grid
-        .neighbours((pos.0 as usize, pos.1 as usize))
+    grid.neighbours((pos.0 as usize, pos.1 as usize))
         .iter()
         .map(|neigh| {
             let next_dir = (neigh.0 as isize - pos.0, neigh.1 as isize - pos.1);
@@ -110,14 +109,15 @@ pub fn solve_part2(input: &Input) -> Output {
         &(*start, (1_isize, 0_isize)),
         |(pos, dir)| neighbours(*pos, *dir, grid),
         |_| 1, // Does not really matter, just improves performance and must be lower than actual
-               // cost
+        // cost
         |(pos, _)| *pos == *end,
     )
-    .unwrap().0
-        .flatten()
-        .map(|(pos, _)| (pos.0, pos.1))
-        .unique()
-        .count()
+    .unwrap()
+    .0
+    .flatten()
+    .map(|(pos, _)| (pos.0, pos.1))
+    .unique()
+    .count()
 }
 
 pub fn part1(input: &str) -> impl std::fmt::Display {
