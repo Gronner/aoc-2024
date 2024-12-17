@@ -57,11 +57,7 @@ impl BitComp {
     }
 
     fn adv(&mut self, addr: usize) {
-        self.reg_a /= 2_isize.pow(
-            self.combo_operand(addr)
-                .try_into()
-                .expect("Overflow in exponent"),
-        );
+        self.reg_a >>= self.combo_operand(addr);
         self.pc += 2;
     }
 
@@ -94,22 +90,12 @@ impl BitComp {
     }
 
     fn bdv(&mut self, addr: usize) {
-        self.reg_b = self.reg_a
-            / 2_isize.pow(
-                self.combo_operand(addr)
-                    .try_into()
-                    .expect("Overflow in exponent"),
-            );
+        self.reg_b = self.reg_a >> self.combo_operand(addr);
         self.pc += 2;
     }
 
     fn cdv(&mut self, addr: usize) {
-        self.reg_c = self.reg_a
-            / 2_isize.pow(
-                self.combo_operand(addr)
-                    .try_into()
-                    .expect("Overflow in exponent"),
-            );
+        self.reg_c = self.reg_a >> self.combo_operand(addr);
         self.pc += 2;
     }
 }
