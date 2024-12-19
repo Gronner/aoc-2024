@@ -29,8 +29,8 @@ fn count_feasible(design: &str, patterns: &[String]) -> Option<usize> {
         return Some(1);
     }
     let count = patterns.iter()
-        .filter(|pat| design.starts_with(*pat))
-        .filter_map(|pat| count_feasible(design.strip_prefix(pat).unwrap(), patterns))
+        .filter_map(|pat| design.strip_prefix(pat))
+        .filter_map(|stripped| count_feasible(stripped, patterns))
         .sum();
     if count != 0 {
         Some(count)
