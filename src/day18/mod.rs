@@ -1,5 +1,3 @@
-use std::usize;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 #[allow(unused)]
 use itertools::Itertools;
@@ -22,7 +20,7 @@ pub fn input_generator(input: &str) -> Input {
     )
 }
 
-fn create_ram(bytes: &Vec<(usize, usize)>, end: (usize, usize), fallen: usize) -> Grid {
+fn create_ram(bytes: &[(usize, usize)], end: (usize, usize), fallen: usize) -> Grid {
     (0..=end.0)
         .cartesian_product(0..=end.1)
         .filter(|pos| !&bytes[..fallen].contains(pos))
