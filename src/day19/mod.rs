@@ -12,8 +12,12 @@ type Input = (Vec<String>, Vec<String>);
 pub fn input_generator(input: &str) -> Input {
     let (patterns, designs) = input.split_once("\n\n").unwrap();
 
-    let patterns = patterns.split(", ").map(|pat| pat.to_string()).collect::<Vec<_>>();
-    let designs = designs.lines()
+    let patterns = patterns
+        .split(", ")
+        .map(|pat| pat.to_string())
+        .collect::<Vec<_>>();
+    let designs = designs
+        .lines()
         .map(|des| des.to_string())
         .collect::<Vec<_>>();
     (patterns, designs)
@@ -28,7 +32,8 @@ fn count_feasible(design: &str, patterns: &[String]) -> Option<usize> {
     if design.is_empty() {
         return Some(1);
     }
-    let count = patterns.iter()
+    let count = patterns
+        .iter()
         .filter_map(|pat| design.strip_prefix(pat))
         .filter_map(|stripped| count_feasible(stripped, patterns))
         .sum();
@@ -43,7 +48,8 @@ fn count_feasible(design: &str, patterns: &[String]) -> Option<usize> {
 pub fn solve_part1(input: &Input) -> Output {
     let (patterns, designs) = input;
 
-    designs.iter()
+    designs
+        .iter()
         .filter(|des| count_feasible(des, patterns).is_some())
         .count()
 }
@@ -52,7 +58,8 @@ pub fn solve_part1(input: &Input) -> Output {
 pub fn solve_part2(input: &Input) -> Output {
     let (patterns, designs) = input;
 
-    designs.iter()
+    designs
+        .iter()
         .filter_map(|des| count_feasible(des, patterns))
         .sum()
 }
