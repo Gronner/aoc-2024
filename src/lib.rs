@@ -1,3 +1,5 @@
+#![feature(iter_map_windows)]
+
 #[macro_use]
 mod utils;
 use aoc_runner_derive::aoc_lib;
@@ -15,6 +17,7 @@ pub mod day18;
 pub mod day19;
 pub mod day2;
 pub mod day20;
+pub mod day21;
 pub mod day3;
 pub mod day4;
 pub mod day5;
