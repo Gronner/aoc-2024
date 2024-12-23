@@ -32,31 +32,31 @@ pub fn input_generator(input: &str) -> Input {
 }
 
 /// Finds the maximum cliques in a graph
-fn bron_kerbosch(
-    r: FxHashSet<String>,
-    mut p: FxHashSet<String>,
-    mut x: FxHashSet<String>,
-    n: &FxHashMap<String, FxHashSet<String>>,
-) -> FxHashSet<String> {
+fn bron_kerbosch<'a>(
+    r: FxHashSet<&'a str>,
+    mut p: FxHashSet<&'a str>,
+    mut x: FxHashSet<&'a str>,
+    n: &FxHashMap<&'a str, FxHashSet<&'a str>>,
+) -> FxHashSet<&'a str> {
     if p.is_empty() && x.is_empty() {
         return r;
     }
     let mut max_r = FxHashSet::default();
     for vertex in p.clone() {
         let mut r_v = FxHashSet::default();
-        r_v.insert(vertex.clone());
+        r_v.insert(vertex);
         let new_max_r = bron_kerbosch(
             r.union(&r_v).cloned().collect(),
-            p.intersection(&n[&vertex]).cloned().collect(),
-            x.intersection(&n[&vertex]).cloned().collect(),
+            p.intersection(&n[vertex]).cloned().collect(),
+            x.intersection(&n[vertex]).cloned().collect(),
             n,
         );
         p = p
-            .difference(&FxHashSet::from_iter(vec![vertex.clone()]))
+            .difference(&FxHashSet::from_iter(vec![vertex]))
             .cloned()
             .collect();
         x = x
-            .union(&FxHashSet::from_iter(vec![vertex.clone()]))
+            .union(&FxHashSet::from_iter(vec![vertex]))
             .cloned()
             .collect();
         max_r = max_by_key(max_r, new_max_r, |set| set.len());
@@ -82,9 +82,11 @@ pub fn solve_part1(input: &Input) -> Output {
 pub fn solve_part2(input: &Input) -> Output2 {
     bron_kerbosch(
         FxHashSet::default(),
-        FxHashSet::from_iter(input.keys().cloned()),
+        FxHashSet::from_iter(input.keys().map(|k| k.as_str())),
         FxHashSet::default(),
-        input,
+        &input
+            .iter()
+            .fold(FxHashMap::default(), |mut graph, (k, v)| { graph.insert(k, FxHashSet::from_iter(v.iter().map(|pc| pc.as_str()))); graph })
     )
     .iter()
     .sorted()
