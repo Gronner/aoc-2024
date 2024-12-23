@@ -7,28 +7,17 @@ use itertools::Itertools;
 
 type Output = usize;
 type Output2 = String;
-type Input = FxHashMap<String, FxHashSet<String>>;
+type Input = Vec<(String, String)>;
 
 #[aoc_generator(day23)]
 pub fn input_generator(input: &str) -> Input {
     input
         .lines()
         .map(|line| line.split_once("-").expect("No `-` delimiter"))
-        .fold(FxHashMap::default(), |mut graph, (pc_a, pc_b)| {
-            graph
-                .entry(pc_a.to_string())
-                .and_modify(|connected| {
-                    connected.insert(pc_b.to_string());
-                })
-                .or_insert(FxHashSet::from_iter(vec![pc_b.to_string()]));
-            graph
-                .entry(pc_b.to_string())
-                .and_modify(|connected| {
-                    connected.insert(pc_a.to_string());
-                })
-                .or_insert(FxHashSet::from_iter(vec![pc_a.to_string()]));
-            graph
-        })
+        .map(|(a, b)| (a.min(b), a.max(b)))
+        .sorted_by(|(aa, ab), (ba, bb)| aa.cmp(ba).then(ab.cmp(bb)))
+        .map(|(a, b)| (a.to_string(), b.to_string()))
+        .collect()
 }
 
 /// Finds the maximum cliques in a graph
@@ -66,27 +55,52 @@ fn bron_kerbosch<'a>(
 
 #[aoc(day23, part1)]
 pub fn solve_part1(input: &Input) -> Output {
-    input
-        .keys()
-        .combinations(3)
-        .filter(|pcs| pcs.iter().any(|pc| pc.starts_with('t')))
-        .filter(|pcs| {
-            input[pcs[0]].contains(pcs[1])
-                && input[pcs[1]].contains(pcs[2])
-                && input[pcs[2]].contains(pcs[0])
+    let input: Vec<(&str, &str)> = input
+        .iter()
+        .map(|(a, b)| (a.as_str(), b.as_str()))
+        .collect();
+    input[..input.len() - 1]
+        .iter()
+        .cartesian_product(input[1..].iter())
+        .filter_map(|(conn_a, conn_b)| {
+            if conn_a.0 == conn_b.0 && input.contains(&(conn_a.1, conn_b.1)) {
+                Some((conn_a.0, conn_a.1, conn_b.1))
+            } else {
+                None
+            }
         })
+        .filter(|pcs| [pcs.0, pcs.1, pcs.2].iter().any(|pc| pc.starts_with('t')))
         .count()
 }
 
 #[aoc(day23, part2)]
 pub fn solve_part2(input: &Input) -> Output2 {
+    let map = input
+        .iter()
+        .fold(FxHashMap::default(), |mut graph, (pc_a, pc_b)| {
+            graph
+                .entry(pc_a.as_str())
+                .and_modify(|connected: &mut FxHashSet<_>| {
+                    connected.insert(pc_b.as_str());
+                })
+                .or_insert({
+                    let mut map = FxHashSet::default();
+                    map.insert(pc_b.as_str());
+                    map
+                });
+            graph
+                .entry(pc_b.as_str())
+                .and_modify(|connected| {
+                    connected.insert(pc_a.as_str());
+                })
+                .or_insert(FxHashSet::from_iter(vec![pc_a.as_str()]));
+            graph
+        });
     bron_kerbosch(
         FxHashSet::default(),
-        FxHashSet::from_iter(input.keys().map(|k| k.as_str())),
+        FxHashSet::from_iter(map.keys().copied()),
         FxHashSet::default(),
-        &input
-            .iter()
-            .fold(FxHashMap::default(), |mut graph, (k, v)| { graph.insert(k, FxHashSet::from_iter(v.iter().map(|pc| pc.as_str()))); graph })
+        &map,
     )
     .iter()
     .sorted()
